@@ -45,11 +45,12 @@ public class RequestRetrofit {
     private Context context;
     private ArrayList<Pair> currenciesPair;
     private String currencyName;
+    private Class aClass;
+    boolean endDonwlodOperation = false;
 
-
-
-    public RequestRetrofit(Context context) {
+    public RequestRetrofit(Context context, Class aClass) {
         this.context = context;
+        this.aClass = aClass;
         this.initHandler();
         this.initRestClient();
     }
@@ -60,7 +61,9 @@ public class RequestRetrofit {
 
 
 
-    private class CurrencyResponseHanlder implements Consumer<Currency.List> {
+    public class CurrencyResponseHanlder implements Consumer<Currency.List> {
+        ArrayList<Pair> outputPairList;
+
 
         public CurrencyResponseHanlder() {
         }
@@ -68,19 +71,34 @@ public class RequestRetrofit {
         @Override
         public void accept(Currency.List currencies) throws Exception {
             boolean endList = true;
-            for (int i = 0; i < currenciesPair.size(); i++){
-                if (currencies.get(0).getExchangeDate().equals(currenciesPair.get(i).getDate())){
-                    currenciesPair.get(i).setCurrency(currencies.get(0));
+            if (outputPairList == null){
+                outputPairList.addAll(currenciesPair);
+            }
+            endDonwlodOperation = false;
+            for (int i = 0; i < outputPairList.size(); i++){
+                if (currencies.get(0).getExchangeDate().equals(outputPairList.get(i).getDate())){
+                    outputPairList.get(i).setCurrency(currencies.get(0));
                 }
-                if (currenciesPair.get(i).getCurrency() == null){
+                if (outputPairList.get(i).getCurrency() == null){
                     endList = false;
                 }
             }
             if (endList){
-                //createGraph(currenciesPair);
+                endDonwlodOperation = true;
             }
-
         }
+
+    }
+
+    public ArrayList<Pair> getDataFromNetwork() {
+        do {
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }while (!endDonwlodOperation);
+        return currenciesPair;
     }
 
     private void initHandler() {
@@ -199,7 +217,13 @@ public class RequestRetrofit {
         currenciesPair = new ArrayList<>();
         currenciesPair = generateDate(null, toDate, rangeDays);
         takeRequest();
-
-
     }
+
+    public ArrayList<Pair> getCurrenciesPair() {
+        return currenciesPair;
+    }
+    public void setCurrenciesPair(ArrayList<Pair> currenciesPair) {
+        this.currenciesPair = currenciesPair;
+    }
+
 }
