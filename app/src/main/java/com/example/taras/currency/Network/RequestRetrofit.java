@@ -48,10 +48,11 @@ public class RequestRetrofit {
     private Class aClass;
     boolean endDonwlodOperation = false;
 
-    public RequestRetrofit(Context context, Class aClass) {
+    public RequestRetrofit(Context context, Class aClass, Consumer<Currency.List> responseHandler) {
+        this.responseHandler = responseHandler;
         this.context = context;
         this.aClass = aClass;
-        this.initHandler();
+        //this.initHandler();
         this.initRestClient();
     }
 
@@ -90,20 +91,11 @@ public class RequestRetrofit {
 
     }
 
-    public ArrayList<Pair> getDataFromNetwork() {
-        do {
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }while (!endDonwlodOperation);
-        return currenciesPair;
-    }
 
+    /*
     private void initHandler() {
         this.responseHandler = new CurrencyResponseHanlder();
-    }
+    }*/
     private void initRestClient(){
         Gson gson = new GsonBuilder()
                 .setLenient()
@@ -128,7 +120,7 @@ public class RequestRetrofit {
         this.currencyApi = retrofitFactory.create(CurrencyAPIService.class);
     }
 
-    private ArrayList<Pair> generateDate(String fromDate, @NonNull String toDate, int rangeDays){
+    public ArrayList<Pair> generateDate(String fromDate, @NonNull String toDate, int rangeDays){
         ArrayList<Pair> outputPairList = new ArrayList<>();
 
         Calendar gcal = convertStringToCalenar(toDate);
@@ -150,6 +142,7 @@ public class RequestRetrofit {
             }
             gcal.add(Calendar.DAY_OF_MONTH, 1);
         } while (gcal.getTime().before(lastdate));
+        currenciesPair = outputPairList;
         return outputPairList;
     }
 
@@ -215,15 +208,7 @@ public class RequestRetrofit {
 
     public void takeRequestFromDate(String toDate, int rangeDays){
         currenciesPair = new ArrayList<>();
-        currenciesPair = generateDate(null, toDate, rangeDays);
+        generateDate(null, toDate, rangeDays);
         takeRequest();
     }
-
-    public ArrayList<Pair> getCurrenciesPair() {
-        return currenciesPair;
-    }
-    public void setCurrenciesPair(ArrayList<Pair> currenciesPair) {
-        this.currenciesPair = currenciesPair;
-    }
-
 }
